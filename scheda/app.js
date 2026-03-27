@@ -236,6 +236,37 @@ $('file-input').addEventListener('change', e => {
   $('file-input').value = '';
 });
 
+// Paste from clipboard (bookmarklet flow)
+function pasteFromClipboard() {
+  if (!navigator.clipboard || !navigator.clipboard.readText) {
+    showToast('Clipboard non supportata — usa "Incolla JSON manualmente"', true);
+    return;
+  }
+  navigator.clipboard.readText().then(text => {
+    text = text.trim();
+    if (!text) { showToast('Appunti vuoti — esegui prima il bookmarklet su Roll20', true); return; }
+    processJSON(text);
+  }).catch(() => {
+    showToast('Permesso negato — usa "Incolla JSON manualmente"', true);
+  });
+}
+
+// Check pending import from /export/ page
+function checkPendingImport() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('import') === 'pending') {
+    const key = '_dnd35_pending_import';
+    const text = localStorage.getItem(key);
+    if (text) {
+      localStorage.removeItem(key);
+      history.replaceState(null, '', '/scheda/');
+      processJSON(text);
+      return true;
+    }
+  }
+  return false;
+}
+
 // Paste modal
 function openPasteModal()  { $('paste-modal').classList.add('open'); }
 function closePasteModal() { $('paste-modal').classList.remove('open'); }
@@ -716,5 +747,7 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/scheda/sw.js').catch(() => {});
 }
 
-renderHome();
-showScreen('home');
+if (!checkPendingImport()) {
+  renderHome();
+  showScreen('home');
+}

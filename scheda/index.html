@@ -61,7 +61,14 @@
   <input type="file" id="file-input" accept=".json,application/json">
 
   <div class="import-or">oppure</div>
-  <button class="btn" onclick="openPasteModal()">📋 Incolla JSON</button>
+  <button class="btn primary" onclick="pasteFromClipboard()" id="btn-paste-roll20">📋 Incolla da Roll20</button>
+
+  <div class="import-or">oppure</div>
+  <button class="btn" onclick="openPasteModal()">✏️ Incolla JSON manualmente</button>
+
+  <div class="import-or-link">
+    <a href="/export/" style="color:var(--gold);font-size:13px;">Come esportare da Roll20? → Guida</a>
+  </div>
 
   <div class="parse-error" id="parse-error"></div>
 </div>
