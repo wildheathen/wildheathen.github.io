@@ -118,6 +118,32 @@ body{background:var(--bg);color:var(--text);font-family:'Crimson Text',Georgia,s
   padding:14px 16px;margin:16px 0;font-size:13px;line-height:1.5;
 }
 .alert strong{color:var(--gold2);}
+
+/* Platform tabs */
+.platform-tabs{
+  display:flex;gap:8px;margin-bottom:16px;
+}
+.platform-tab{
+  flex:1;padding:10px 8px;border:1px solid var(--border);border-radius:6px;
+  background:var(--bg2);color:var(--text-dim);
+  font-family:'Cinzel',serif;font-size:12px;font-weight:600;
+  cursor:pointer;transition:all .2s;text-align:center;
+}
+.platform-tab.active{
+  background:var(--bg4);color:var(--gold2);border-color:var(--gold-dim);
+}
+.platform-panel{display:none;}
+.platform-panel.active{display:block;}
+
+/* Drag bookmarklet button */
+.drag-bookmarklet{
+  display:inline-block;padding:10px 20px;
+  background:var(--gold-dim);color:var(--text-hdr);
+  font-family:'Cinzel',serif;font-size:13px;font-weight:600;
+  border-radius:6px;text-decoration:none;cursor:grab;
+  border:1px solid var(--gold);
+}
+.drag-bookmarklet:active{cursor:grabbing;}
 </style>
 </head>
 <body>
@@ -135,51 +161,108 @@ body{background:var(--bg);color:var(--text);font-family:'Crimson Text',Georgia,s
   <div class="section">
     <div class="section-title">Fase 1 — Installare il bookmarklet (una volta sola)</div>
 
-    <div class="step">
-      <div class="step-num">1</div>
-      <div class="step-body">
-        <div class="step-title">Salva un segnalibro qualsiasi</div>
-        <div class="step-text">
-          Apri <strong>Chrome</strong> su qualsiasi pagina (es. google.com).<br>
-          Tocca il menu <strong>⋮</strong> in alto a destra → <strong>&#9734;</strong> (stella) per aggiungere ai preferiti.
+    <!-- Tab switcher -->
+    <div class="platform-tabs">
+      <button class="platform-tab active" onclick="switchPlatform('mobile', this)">📱 Android / Mobile</button>
+      <button class="platform-tab" onclick="switchPlatform('desktop', this)">💻 Desktop</button>
+    </div>
+
+    <!-- ── MOBILE ── -->
+    <div class="platform-panel active" id="platform-mobile">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Salva un segnalibro qualsiasi</div>
+          <div class="step-text">
+            Apri <strong>Chrome</strong> su qualsiasi pagina (es. google.com).<br>
+            Tocca il menu <strong>⋮</strong> in alto a destra → <strong>&#9734;</strong> (stella) per aggiungere ai preferiti.
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">Copia il codice del bookmarklet</div>
+          <div class="step-text">
+            Tocca il pulsante <strong>"Copia codice"</strong> qui sotto. Il codice viene copiato negli appunti.
+          </div>
+          <div class="code-wrap">
+            <button class="btn-copy" id="btn-copy-bm" onclick="copyBookmarklet()">Copia codice</button>
+            <code id="bookmarklet-code">javascript:void(navigator.clipboard.writeText(JSON.stringify([...document.querySelectorAll('[name^=attr_]')].reduce((o,e)=>(e.value&&(o[e.name]=e.value),o),{}))).then(()=>alert('✅ JSON copiato negli appunti!\n\nOra vai sulla scheda D&D 3.5 e tocca "Incolla da Roll20".')).catch(()=>{const t=JSON.stringify([...document.querySelectorAll('[name^=attr_]')].reduce((o,e)=>(e.value&&(o[e.name]=e.value),o),{}));const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();document.execCommand('copy');document.body.removeChild(a);alert('✅ JSON copiato!\n\nVai sulla scheda D&D 3.5.')}))</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">Modifica il segnalibro</div>
+          <div class="step-text">
+            Tocca <strong>⋮</strong> → <strong>Preferiti</strong> → trova il segnalibro che hai appena salvato.<br>
+            Tieni premuto su di esso → <strong>Modifica</strong>.<br>
+            Cambia il <strong>nome</strong> in qualcosa di facile, tipo: <strong>Roll20 Export</strong><br>
+            Seleziona tutto il campo <strong>URL</strong>, cancellalo, e <strong>incolla</strong> il codice copiato al passo 2.
+          </div>
+          <div class="step-note">Il campo URL deve iniziare con "javascript:" — se non inizia così, qualcosa è andato storto. Ricopia il codice.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-title">Salva</div>
+          <div class="step-text">
+            Tocca <strong>indietro</strong> o il segno di spunta. Il bookmarklet è installato. Non dovrai rifarlo mai più.
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="step">
-      <div class="step-num">2</div>
-      <div class="step-body">
-        <div class="step-title">Copia il codice del bookmarklet</div>
-        <div class="step-text">
-          Tocca il pulsante <strong>"Copia codice"</strong> qui sotto. Il codice viene copiato negli appunti.
-        </div>
-        <div class="code-wrap">
-          <button class="btn-copy" id="btn-copy-bm" onclick="copyBookmarklet()">Copia codice</button>
-          <code id="bookmarklet-code">javascript:void(navigator.clipboard.writeText(JSON.stringify([...document.querySelectorAll('[name^=attr_]')].reduce((o,e)=>(e.value&&(o[e.name]=e.value),o),{}))).then(()=>alert('✅ JSON copiato negli appunti!\n\nOra vai sulla scheda D&D 3.5 e tocca "Incolla da Roll20".')).catch(()=>{const t=JSON.stringify([...document.querySelectorAll('[name^=attr_]')].reduce((o,e)=>(e.value&&(o[e.name]=e.value),o),{}));const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();document.execCommand('copy');document.body.removeChild(a);alert('✅ JSON copiato!\n\nVai sulla scheda D&D 3.5.')}))</code>
+    <!-- ── DESKTOP ── -->
+    <div class="platform-panel" id="platform-desktop">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Mostra la barra dei preferiti</div>
+          <div class="step-text">
+            Se non la vedi, premi <strong>Ctrl+Shift+B</strong> (Chrome/Edge) o <strong>Ctrl+B</strong> (Firefox).
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="step">
-      <div class="step-num">3</div>
-      <div class="step-body">
-        <div class="step-title">Modifica il segnalibro</div>
-        <div class="step-text">
-          Tocca <strong>⋮</strong> → <strong>Preferiti</strong> → trova il segnalibro che hai appena salvato.<br>
-          Tieni premuto su di esso → <strong>Modifica</strong>.<br>
-          Cambia il <strong>nome</strong> in qualcosa di facile, tipo: <strong>Roll20 Export</strong><br>
-          Seleziona tutto il campo <strong>URL</strong>, cancellalo, e <strong>incolla</strong> il codice copiato al passo 2.
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">Trascina il bottone nella barra</div>
+          <div class="step-text">
+            Trascina questo bottone direttamente nella <strong>barra dei preferiti</strong>:
+          </div>
+          <div style="margin:12px 0;">
+            <a class="drag-bookmarklet" id="drag-bm" href="#" onclick="event.preventDefault();showToast('Trascinami nella barra dei preferiti!')">⚔️ Roll20 Export</a>
+          </div>
+          <div class="step-note">Se il drag & drop non funziona, copia il codice (bottone sotto) e crea il segnalibro manualmente.</div>
+          <div style="margin-top:8px;">
+            <button class="btn-copy" style="position:static;" onclick="copyBookmarklet()">Copia codice</button>
+          </div>
         </div>
-        <div class="step-note">Il campo URL deve iniziare con "javascript:" — se non inizia così, qualcosa è andato storto. Ricopia il codice.</div>
       </div>
-    </div>
 
-    <div class="step">
-      <div class="step-num">4</div>
-      <div class="step-body">
-        <div class="step-title">Salva</div>
-        <div class="step-text">
-          Tocca <strong>indietro</strong> o il segno di spunta. Il bookmarklet è installato. Non dovrai rifarlo mai più.
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">Fatto!</div>
+          <div class="step-text">
+            Il bookmarklet <strong>"⚔️ Roll20 Export"</strong> appare nella barra dei preferiti. Un click e sei pronto.
+          </div>
+        </div>
+      </div>
+
+      <div class="alert">
+        <strong>Alternativa veloce:</strong> Apri la scheda del PG su Roll20, premi <strong>F12</strong> per aprire la console, incolla il codice qui sotto e premi Invio:
+        <div class="code-wrap" style="margin-top:8px;margin-bottom:0;">
+          <button class="btn-copy" onclick="copyConsoleCode()">Copia</button>
+          <code id="console-code">navigator.clipboard.writeText(JSON.stringify([...document.querySelectorAll('[name^=attr_]')].reduce((o,e)=>(e.value&&(o[e.name]=e.value),o),{})))</code>
         </div>
       </div>
     </div>
@@ -255,6 +338,33 @@ function showToast(msg, warn) {
   t.classList.toggle('warn', !!warn);
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// Set bookmarklet href on drag so it doesn't execute on page load
+(function() {
+  var bm = document.getElementById('drag-bm');
+  if (bm) {
+    bm.addEventListener('dragstart', function() {
+      bm.href = document.getElementById('bookmarklet-code').textContent;
+    });
+    bm.addEventListener('dragend', function() {
+      bm.href = '#';
+    });
+  }
+})();
+
+function switchPlatform(id, btn) {
+  document.querySelectorAll('.platform-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.platform-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('platform-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+function copyConsoleCode() {
+  const code = document.getElementById('console-code').textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    showToast('Codice console copiato!');
+  }).catch(() => showToast('Errore copia', true));
 }
 
 function copyBookmarklet() {
