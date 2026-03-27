@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0e0e12">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="D&D 3.5">
+<title>D&D 3.5 — Schede Personaggio</title>
+<link rel="manifest" href="/scheda/manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="/scheda/icon-192.png">
+<link rel="apple-touch-icon" href="/scheda/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/scheda/style.css">
+</head>
+<body>
+
+<!-- ══════════════════════════════════
+     HOME SCREEN
+══════════════════════════════════ -->
+<div id="home">
+  <div class="home-header">
+    <div class="home-logo">⚔️🎲</div>
+    <div class="home-title">D&D 3.5 Schede</div>
+    <div class="home-sub">Le tue avventure, sempre con te</div>
+  </div>
+
+  <div class="home-body">
+    <div class="section-title">I tuoi personaggi</div>
+
+    <div class="empty-state" id="pg-empty" style="display:none">
+      <div class="empty-state-icon">📜</div>
+      <div class="empty-state-text">Nessun personaggio salvato.<br>Importa il JSON da Roll20 per iniziare.</div>
+    </div>
+
+    <div class="pg-grid" id="pg-grid"></div>
+
+    <div class="section-title" style="margin-top:28px">Aggiungi personaggio</div>
+    <button class="btn-new-pg" onclick="goToImport()">
+      <span class="btn-new-pg-icon">＋</span>
+      Importa da Roll20 JSON
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     IMPORT SCREEN
+══════════════════════════════════ -->
+<div id="import-screen">
+  <button class="btn-back" onclick="showScreen('home');renderHome()">← Indietro</button>
+
+  <div class="import-title">Carica Personaggio</div>
+  <div class="import-sub">Importa il file JSON esportato da Roll20 tramite il bookmarklet</div>
+
+  <div class="drop-zone" id="drop-zone">
+    <div class="drop-zone-icon">📂</div>
+    <div class="drop-zone-text">Tocca per selezionare il file JSON</div>
+    <div class="drop-zone-sub">oppure trascina qui il file</div>
+  </div>
+  <input type="file" id="file-input" accept=".json,application/json">
+
+  <div class="import-or">oppure</div>
+  <button class="btn" onclick="openPasteModal()">📋 Incolla JSON</button>
+
+  <div class="parse-error" id="parse-error"></div>
+</div>
+
+<!-- ══════════════════════════════════
+     SHEET SCREEN
+══════════════════════════════════ -->
+<div id="sheet-screen">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="avatar" id="hdr-avatar">🎲</div>
+    <div class="hdr-info">
+      <div class="hdr-name" id="hdr-name">—</div>
+      <div class="hdr-sub"  id="hdr-sub">—</div>
+    </div>
+    <div class="hdr-badges" id="hdr-badges"></div>
+    <div class="hdr-btns">
+      <button class="hdr-btn green" id="save-btn" onclick="saveState()">Salva</button>
+      <button class="hdr-btn" onclick="goHome()">← Home</button>
+    </div>
+  </div>
+
+  <!-- Tab nav -->
+  <nav class="tabs-nav">
+    <button class="tn-btn active" onclick="switchTab('info',this)">Info</button>
+    <button class="tn-btn"        onclick="switchTab('stats',this)">Caratteristiche</button>
+    <button class="tn-btn"        onclick="switchTab('combat',this)">Combattimento</button>
+    <button class="tn-btn"        onclick="switchTab('skills',this)">Abilità</button>
+    <button class="tn-btn"        onclick="switchTab('spells',this)">Incantesimi</button>
+    <button class="tn-btn"        onclick="switchTab('equip',this)">Equipaggiamento</button>
+    <button class="tn-btn"        onclick="switchTab('feats',this)">Talenti & Note</button>
+  </nav>
+
+  <!-- Panels -->
+  <div id="p-info"   class="panel active"></div>
+  <div id="p-stats"  class="panel"></div>
+  <div id="p-combat" class="panel"></div>
+  <div id="p-skills" class="panel"></div>
+  <div id="p-spells" class="panel"></div>
+  <div id="p-equip"  class="panel"></div>
+  <div id="p-feats"  class="panel"></div>
+
+</div>
+
+<!-- ══════════════════════════════════
+     MODALS
+══════════════════════════════════ -->
+
+<!-- Paste modal -->
+<div class="modal-overlay" id="paste-modal">
+  <div class="modal">
+    <div class="modal-title">Incolla JSON Roll20</div>
+    <textarea id="paste-area" placeholder='{ "attr_character_name": "...", ... }'></textarea>
+    <div class="modal-btns">
+      <button class="btn" onclick="closePasteModal()">Annulla</button>
+      <button class="btn primary" onclick="loadFromPaste()">Carica</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete confirm -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <p>Eliminare <strong id="confirm-pg-name"></strong>?<br>
+    <span style="font-size:12px;color:var(--text-dim)">Tutti i dati e la progressione di sessione saranno persi.</span></p>
+    <div class="confirm-btns">
+      <button class="btn" onclick="cancelDelete()">Annulla</button>
+      <button class="btn danger" onclick="executeDelete()">Elimina</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script src="/scheda/parser.js"></script>
+<script src="/scheda/app.js"></script>
+</body>
+</html>
